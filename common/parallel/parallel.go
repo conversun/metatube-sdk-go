@@ -2,6 +2,8 @@ package parallel
 
 import (
 	"sync"
+
+	"github.com/metatube-community/metatube-sdk-go/common/recovery"
 )
 
 func Parallel[T any, R any](fn func(T) R, args ...T) []R {
@@ -12,6 +14,7 @@ func Parallel[T any, R any](fn func(T) R, args ...T) []R {
 		wg.Add(1)
 		go func(i int, v T) {
 			defer wg.Done()
+			defer recovery.Recover("Parallel")
 			results[i] = fn(v)
 		}(i, v)
 	}

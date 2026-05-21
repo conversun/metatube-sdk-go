@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/metatube-community/metatube-sdk-go/common/fetch"
+	"github.com/metatube-community/metatube-sdk-go/common/recovery"
 	"github.com/metatube-community/metatube-sdk-go/imageutil"
 	"github.com/metatube-community/metatube-sdk-go/provider"
 )
@@ -44,6 +45,7 @@ func Similar(imageUrlA, imageUrlB string, fetcher provider.Fetcher) bool {
 		// Async fetching.
 		go func(i int, imageUrl string) {
 			defer wg.Done()
+			defer recovery.Recover("imcmp.Similar")
 			if img, err := getImageByURL(imageUrl, fetcher); err == nil {
 				if i%2 == 0 {
 					imgA = img

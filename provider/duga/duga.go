@@ -14,6 +14,7 @@ import (
 
 	"github.com/metatube-community/metatube-sdk-go/common/number"
 	"github.com/metatube-community/metatube-sdk-go/common/parser"
+	"github.com/metatube-community/metatube-sdk-go/common/recovery"
 	"github.com/metatube-community/metatube-sdk-go/model"
 	"github.com/metatube-community/metatube-sdk-go/provider"
 	"github.com/metatube-community/metatube-sdk-go/provider/internal/scraper"
@@ -240,6 +241,7 @@ func (duga *DUGA) SearchMovie(keyword string) (results []*model.MovieSearchResul
 			wg.Add(1)
 			go func(i int) {
 				defer wg.Done()
+				defer recovery.Recover("DUGA/search")
 				if info, _ := duga.GetMovieInfoByID(ids[i]); info != nil && info.IsValid() {
 					mu.Lock()
 					results = append(results, info.ToSearchResult())

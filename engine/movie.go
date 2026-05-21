@@ -13,6 +13,7 @@ import (
 	"github.com/metatube-community/metatube-sdk-go/collection/slices"
 	"github.com/metatube-community/metatube-sdk-go/common/comparer"
 	"github.com/metatube-community/metatube-sdk-go/common/number"
+	"github.com/metatube-community/metatube-sdk-go/common/recovery"
 	"github.com/metatube-community/metatube-sdk-go/engine/providerid"
 	"github.com/metatube-community/metatube-sdk-go/model"
 	mt "github.com/metatube-community/metatube-sdk-go/provider"
@@ -105,6 +106,7 @@ func (e *Engine) searchMovieAll(keyword string) (results []*model.MovieSearchRes
 		// Async searching.
 		go func(provider mt.MovieProvider) {
 			defer wg.Done()
+			defer recovery.Recover("SearchMovieAll")
 			innerResults, innerErr := e.searchMovie(keyword, provider, false)
 			respCh <- response{
 				Results:   innerResults,
@@ -116,6 +118,7 @@ func (e *Engine) searchMovieAll(keyword string) (results []*model.MovieSearchRes
 		}(provider)
 	}
 	go func() {
+		defer recovery.Recover("SearchMovieAll/close-channel")
 		wg.Wait()
 		// notify when all searching tasks done.
 		close(respCh)
