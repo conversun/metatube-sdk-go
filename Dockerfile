@@ -16,7 +16,8 @@ RUN apk add --update --no-cache --no-progress ca-certificates tzdata
 
 ENV GIN_MODE=release
 ENV PORT=8080
-ENV TOKEN=""
+# TOKEN is read from the runtime environment, not baked into the image.
+# Set it via `docker run -e TOKEN=...` or compose env.
 ENV DSN=""
 ENV REQUEST_TIMEOUT=""
 ENV DB_MAX_IDLE_CONNS=0
