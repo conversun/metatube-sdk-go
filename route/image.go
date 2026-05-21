@@ -1,7 +1,6 @@
 package route
 
 import (
-	"bytes"
 	"image"
 	"net/http"
 	"strconv"
@@ -9,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
 
+	"github.com/metatube-community/metatube-sdk-go/common/bufferpool"
 	R "github.com/metatube-community/metatube-sdk-go/constant"
 	"github.com/metatube-community/metatube-sdk-go/engine"
 	"github.com/metatube-community/metatube-sdk-go/imageutil"
@@ -23,6 +23,10 @@ const (
 	thumbImageType
 	backdropImageType
 )
+
+// imageJpegBufferPool reuses JPEG encode buffers between requests to reduce
+// GC pressure on the hot image-serving path.
+var imageJpegBufferPool = bufferpool.New(64 * 1024)
 
 type imageUri struct {
 	infoUri // same as info uri
@@ -128,7 +132,8 @@ func getImage(app *engine.Engine, typ imageType) gin.HandlerFunc {
 		c.Header("X-MetaTube-Image-Width", strconv.Itoa(img.Bounds().Dx()))
 		c.Header("X-MetaTube-Image-Height", strconv.Itoa(img.Bounds().Dy()))
 
-		buf := &bytes.Buffer{}
+		buf := imageJpegBufferPool.Get()
+		defer imageJpegBufferPool.Put(buf)
 		if err = imageutil.EncodeToJPEG(buf, img, query.Quality); err != nil {
 			panic(err)
 		}
