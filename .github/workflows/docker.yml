@@ -8,8 +8,10 @@ on:
   push:
     branches:
       - 'main'
+      - 'optimize/**'
     tags:
       - '*'
+  workflow_dispatch:
 
 jobs:
 
@@ -46,7 +48,7 @@ jobs:
           echo "version=$(git describe --abbrev=0 --tags HEAD | cut -d'v' -f 2)" >> $GITHUB_OUTPUT
 
       - name: Build and Push (dev)
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/optimize/')
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -54,7 +56,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/metatube-community/metatube-server:dev
+            ghcr.io/${{ github.repository_owner }}/metatube-server:dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -67,7 +69,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/metatube-community/metatube-server:latest
-            ghcr.io/metatube-community/metatube-server:${{ steps.shell.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/metatube-server:latest
+            ghcr.io/${{ github.repository_owner }}/metatube-server:${{ steps.shell.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
