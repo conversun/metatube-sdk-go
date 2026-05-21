@@ -13,6 +13,7 @@ import (
 	"github.com/metatube-community/metatube-sdk-go/collection/slices"
 	"github.com/metatube-community/metatube-sdk-go/common/comparer"
 	"github.com/metatube-community/metatube-sdk-go/common/parser"
+	"github.com/metatube-community/metatube-sdk-go/common/recovery"
 	"github.com/metatube-community/metatube-sdk-go/engine/providerid"
 	"github.com/metatube-community/metatube-sdk-go/model"
 	mt "github.com/metatube-community/metatube-sdk-go/provider"
@@ -121,6 +122,7 @@ func (e *Engine) SearchActorAll(keyword string, fallback bool) (results []*model
 		wg.Add(1)
 		go func(provider mt.ActorProvider) {
 			defer wg.Done()
+			defer recovery.Recover("SearchActorAll")
 			if innerResults, innerErr := e.searchActor(keyword, provider, fallback); innerErr == nil {
 				for _, result := range innerResults {
 					if result.IsValid() /* validation check */ {

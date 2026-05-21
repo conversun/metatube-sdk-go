@@ -8,7 +8,9 @@ on:
   push:
     branches:
       - 'main'
+      - 'optimize/**'
   pull_request:
+  workflow_dispatch:
 
 jobs:
   go-test:
@@ -33,4 +35,4 @@ jobs:
       - name: Run test
         run: |
           go version
-          go test $(go list ./... | grep -Ev "github.com/metatube-community/metatube-sdk-go/translate")
+          go test -race $(go list ./... | grep -Ev "github.com/metatube-community/metatube-sdk-go/translate")

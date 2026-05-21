@@ -9,6 +9,8 @@ linters:
     - unconvert
     - unused
     - usestdlibvars
+    - bodyclose
+    - errorlint
   exclusions:
     generated: lax
     presets:

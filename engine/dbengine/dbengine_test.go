@@ -345,7 +345,7 @@ func TestMain(m *testing.M) {
 	resource, err := pool.RunWithOptions(
 		&dockertest.RunOptions{
 			Repository: "postgres",
-			Tag:        "15-alpine",
+			Tag:        "17-alpine",
 			Env: []string{
 				"POSTGRES_DB=" + postgresDB,
 				"POSTGRES_USER=" + postgresUser,

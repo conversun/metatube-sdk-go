@@ -34,6 +34,14 @@ type Config struct {
 	// Max DB idle connections.
 	MaxIdleConns int
 
+	// Max DB connection lifetime. A connection older than this will be
+	// closed and replaced. Set <= 0 to use the package default (5m).
+	ConnMaxLifetime time.Duration
+
+	// Max DB connection idle time. A connection idle longer than this
+	// will be closed. Set <= 0 to use the package default (1m).
+	ConnMaxIdleTime time.Duration
+
 	LogLevel logger.LogLevel
 }
 
@@ -48,10 +56,18 @@ func (cfg *Config) applyDefaults() {
 		cfg.MaxIdleConns = 2
 	}
 
+	if cfg.ConnMaxLifetime <= 0 {
+		cfg.ConnMaxLifetime = 5 * time.Minute
+	}
+
+	if cfg.ConnMaxIdleTime <= 0 {
+		cfg.ConnMaxIdleTime = time.Minute
+	}
+
 	if cfg.LogLevel < logger.Silent ||
 		cfg.LogLevel > logger.Info {
-		// INFO by default.
-		cfg.LogLevel = logger.Info
+		// WARN by default to reduce per-query Info-level log noise.
+		cfg.LogLevel = logger.Warn
 	}
 }
 
@@ -78,12 +94,13 @@ func Open(cfg *Config) (*gorm.DB, error) {
 			logger.Config{
 				SlowThreshold:             100 * time.Millisecond,
 				LogLevel:                  cfg.LogLevel,
-				IgnoreRecordNotFoundError: false,
-				ParameterizedQueries:      false,
+				IgnoreRecordNotFoundError: true,
+				ParameterizedQueries:      true,
 				Colorful:                  false,
 			}),
-		PrepareStmt:          cfg.PreparedStmt,
-		DisableAutomaticPing: cfg.DisableAutomaticPing,
+		PrepareStmt:            cfg.PreparedStmt,
+		DisableAutomaticPing:   cfg.DisableAutomaticPing,
+		SkipDefaultTransaction: true,
 	})
 	if err != nil {
 		return nil, err
@@ -92,6 +109,8 @@ func Open(cfg *Config) (*gorm.DB, error) {
 	if sqlDB, err := db.DB(); err == nil /* ignore error */ {
 		sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
 		sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
+		sqlDB.SetConnMaxLifetime(cfg.ConnMaxLifetime)
+		sqlDB.SetConnMaxIdleTime(cfg.ConnMaxIdleTime)
 	}
 	return db, nil
 }

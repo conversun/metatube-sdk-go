@@ -15,7 +15,13 @@ services:
     command: -dsn "postgres://metatube:metatube@/metatube?host=/var/run/postgresql" -port 8080 -db-auto-migrate -db-prepared-stmt
 
   postgres:
-    image: postgres:15-alpine
+    # Bumped from postgres:15-alpine. PostgreSQL major-version data
+    # is NOT forward-compatible. If you previously ran this compose with
+    # PG15 and have data in ./db, either:
+    #   1. pg_dump from PG15, drop ./db, then restore into PG17, or
+    #   2. swap this image for pgautoupgrade/pgautoupgrade:17-alpine to
+    #      upgrade in-place on first start.
+    image: postgres:17-alpine
     container_name: metatube-postgres
     restart: unless-stopped
     environment:

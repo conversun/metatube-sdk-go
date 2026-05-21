@@ -16,6 +16,7 @@ import (
 
 	"github.com/metatube-community/metatube-sdk-go/common/js"
 	"github.com/metatube-community/metatube-sdk-go/common/parser"
+	"github.com/metatube-community/metatube-sdk-go/common/recovery"
 	"github.com/metatube-community/metatube-sdk-go/model"
 	"github.com/metatube-community/metatube-sdk-go/provider"
 	"github.com/metatube-community/metatube-sdk-go/provider/internal/scraper"
@@ -172,6 +173,7 @@ func (hey *HeyDouga) GetMovieInfoByURL(rawURL string) (info *model.MovieInfo, er
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			defer recovery.Recover("HeyDouga/rating")
 			var ratingURL string
 			if ss := regexp.MustCompile(`url_get_movie_rating\s*=\s*"(.+?)";`).
 				FindStringSubmatch(body); len(ss) == 2 {
@@ -196,6 +198,7 @@ func (hey *HeyDouga) GetMovieInfoByURL(rawURL string) (info *model.MovieInfo, er
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			defer recovery.Recover("HeyDouga/genres")
 			var (
 				providerID string
 				movieSeq   string

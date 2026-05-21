@@ -27,10 +27,12 @@ var Config = &struct {
 	RequestTimeout time.Duration
 
 	// database config
-	DBMaxIdleConns int
-	DBMaxOpenConns int
-	DBAutoMigrate  bool
-	DBPreparedStmt bool
+	DBMaxIdleConns    int
+	DBMaxOpenConns    int
+	DBAutoMigrate     bool
+	DBPreparedStmt    bool
+	DBConnMaxLifetime time.Duration
+	DBConnMaxIdleTime time.Duration
 
 	// version flag
 	VersionFlag bool
@@ -51,6 +53,8 @@ func init() {
 	flag.DurationVar(&Config.RequestTimeout, "request-timeout", engine.DefaultRequestTimeout, "Timeout per request")
 	flag.IntVar(&Config.DBMaxIdleConns, "db-max-idle-conns", 0, "Database max idle connections")
 	flag.IntVar(&Config.DBMaxOpenConns, "db-max-open-conns", 0, "Database max open connections")
+	flag.DurationVar(&Config.DBConnMaxLifetime, "db-conn-max-lifetime", 5*time.Minute, "Database connection max lifetime")
+	flag.DurationVar(&Config.DBConnMaxIdleTime, "db-conn-max-idle-time", time.Minute, "Database connection max idle time")
 	flag.BoolVar(&Config.DBAutoMigrate, "db-auto-migrate", false, "Database auto migration")
 	flag.BoolVar(&Config.DBPreparedStmt, "db-prepared-stmt", false, "Database prepared statement")
 	flag.BoolVar(&Config.VersionFlag, "version", false, "Show version")
@@ -64,6 +68,8 @@ func Router(names ...string) *gin.Engine {
 		MaxIdleConns:         Config.DBMaxIdleConns,
 		MaxOpenConns:         Config.DBMaxOpenConns,
 		DisableAutomaticPing: true,
+		ConnMaxLifetime:      Config.DBConnMaxLifetime,
+		ConnMaxIdleTime:      Config.DBConnMaxIdleTime,
 	})
 	if err != nil {
 		log.Fatal(err)
