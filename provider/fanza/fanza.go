@@ -608,8 +608,20 @@ func (fz *FANZA) searchMovieNext(keyword string) (results []*model.MovieSearchRe
 		_ = p.LoadJSCode(e.Text)
 	})
 
-	if err = c.Visit(fmt.Sprintf(searchURL, url.QueryEscape(keyword))); err != nil {
+	// Detect region restriction redirect (e.g. not-available-in-your-region),
+	// otherwise parsing would later fail with a misleading `__next_f` error.
+	c.OnScraped(func(r *colly.Response) {
+		if isRegionError(r) {
+			err = ErrRegionNotAvailable
+		}
+	})
+
+	if vErr := c.Visit(fmt.Sprintf(searchURL, url.QueryEscape(keyword))); vErr != nil {
+		err = vErr
 		return
+	}
+	if err != nil {
+		return // region restricted or other error set while scraping.
 	}
 
 	resp := &searchparse.ResponseWrapper{}
