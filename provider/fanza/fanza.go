@@ -617,6 +617,9 @@ func (fz *FANZA) searchMovieNext(keyword string) (results []*model.MovieSearchRe
 	})
 
 	if vErr := c.Visit(fmt.Sprintf(searchURL, url.QueryEscape(keyword))); vErr != nil {
+		if err != nil {
+			return // preserve callback-set err (e.g. ErrRegionNotAvailable).
+		}
 		err = vErr
 		return
 	}
